@@ -1,7 +1,10 @@
-.PHONY: credentials deploy
+.PHONY: echo deploy
 
-credentials:
-	source credentials.sh
+PWD=$(shell pwd)
+SLS=$(PWD)/node_modules/.bin/serverless
+
+echo:
+	@echo "PWD is " $(PWD)
 
 deploy:
-	serverless deploy
+	cd lottie && $(SLS) deploy 
