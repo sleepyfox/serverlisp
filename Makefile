@@ -1,13 +1,14 @@
-.PHONY: echo deploy start-redis
+.PHONY: echo build start-redis
 
 PWD=$(shell pwd)
-SLS=$(PWD)/node_modules/.bin/serverless
+LC=$(node_modules/.bin/sibilant)
 
 echo:
 	@echo "PWD is " $(PWD)
+	@echo "LC is " $(LC)
 
-deploy:
-	cd lottie && $(SLS) deploy 
+build:
+	$(LC) squirter.lisp -o .
 
 start-redis:
 	 docker run -d -p 6379:6379 redis:alpine
