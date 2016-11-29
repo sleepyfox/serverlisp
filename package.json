@@ -4,10 +4,10 @@
   "description": "A simple event-driven architecture, without servers.",
   "main": "index.js",
   "dependencies": {
-    "aws-sdk": "^2.7.7"
+    "aws-sdk": "^2.7.7",
+    "rsmq": "^0.7.1"
   },
   "devDependencies": {
-    "serverless": "^1.2.1",
     "sibilant": "^0.5.5"
   },
   "scripts": {

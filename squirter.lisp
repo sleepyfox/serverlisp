@@ -1,26 +1,35 @@
 ;; Imports
 (var AWS (require "aws-sdk"))
-(var sns (new AWS.SNS {
-              region: "us-east-1" }))
+(AWS.config.update { region: "us-east-1" })
+(var sns (new AWS.SNS))
+(var R (require "rsmq"))
+(var rsmq (new R))
 
 ;; Constants
 (var TIME_DELAY (or process.env.DELAY 5000))
 
-(def construct-message ()
+;; Send a message to AWS SNS
+(def send-sns-message (json)
      (var params {
-          TopicArn: "arn:aws:sns:us-east-1:859676677036:test-topic"
-          Subject: "I am a subject line"
-          Message: (JSON.stringify { message: "I am a JSON message" })
-          MessageAttributes: {
-          attr: {
-            DataType: "String"
-            StringValue: "This is a message attribute" }}}))
+          Message: (JSON.stringify json)
+          MessageStructure: "json"
+          Subject: "A message for lottie"
+          TopicArn: "arn:aws:sns:us-east-1:859676677036:test-topic" })
 
-;; (sns.publish (construct-message) (# (err, data)
-;;                        (ternary err
-;;                                 (console.log err err.stack)
-;;                                 (console.log data))))
+     (sns.publish params (# (err, data)
+                            (ternary err
+                                     (console.log err err.stack)
+                                     (console.log "sns:" data)))))
 
+;; Send a message to a local Redis Message Queue
+(def send-rsmq-message (m)
+     (rsmq.send-message { qname: 'Q message: (JSON.stringify m) }
+                        (# (err, response)
+                           (ternary err
+                                    (console.log "error" err)
+                                    (console.log "message" response))
+                           (process.exit))))
+     
 ;; Returns a random number from 0 (inclusive) to n (exclusive)
 (def random (n)
      (Math.floor (* (Math.random) n)))
@@ -57,14 +66,19 @@
        pax: (choose-pax)})
 
 ;; Sends a message via the message bus
-(def send-message (a)
-     (console.log (JSON.stringify a null 2)))
+(def send-message (sale)
+     (console.log (JSON.stringify sale null 2))
+     (.sendMessage eventHubs {
+                   message: sale
+                   deviceId: 1}))
 
 ;; sends a new message every n seconds
 (def create-data-loop ()
      (set-timeout (#>
-                   (send-message (create-new-sale))
+                   (console.log "status" (send-message (create-new-sale)))
                    (create-data-loop)) TIME_DELAY))
 
-(create-data-loop)
-     
+;;(create-data-loop)
+;;(send-sns-message (create-new-sale))   
+(send-rsmq-message (create-new-sale))
+

@@ -1,4 +1,4 @@
-.PHONY: echo deploy
+.PHONY: echo deploy start-redis
 
 PWD=$(shell pwd)
 SLS=$(PWD)/node_modules/.bin/serverless
@@ -8,3 +8,7 @@ echo:
 
 deploy:
 	cd lottie && $(SLS) deploy 
+
+start-redis:
+	 docker run -d -p 6379:6379 redis:alpine
+
