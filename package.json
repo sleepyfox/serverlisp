@@ -8,6 +8,8 @@
     "rsmq": "^0.7.1"
   },
   "devDependencies": {
+    "itty-bitty-test": "^1.0.3",
+    "mocha": "^3.2.0",
     "sibilant": "^0.5.5"
   },
   "scripts": {

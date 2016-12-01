@@ -4,6 +4,15 @@
 
 ;; Constants
 (var TIME_DELAY (or process.env.DELAY 5000))
+(var NOISE 0.7)
+
+;; Create a queue if it doesn't exist on the redis server
+(def create-queue ()
+     (rsmq.create-queue { qname: 'Q }
+                        (# (err,res)
+                           (ternary (= 1 res)
+                                    (console.log "Queue created")
+                                    (console.log "Queue exists")))))
 
 ;; Send a message to a local Redis Message Queue
 (def send-rsmq-message (m)
@@ -23,17 +32,20 @@
 
 ;; Chooses a random venue
 (def choose-venue ()
-     (sample ["The Belfry" "Celtic Manor Resort"]))
+     (sample ["the-belfry" "celtic-manor-resort"]))
      
 ;; Choose a random salesperson
 (def choose-salesperson ()
-     (sample ["Fred Bloggs" "Jane Doe" "John Smith" "Mary Major"]))
+     (sample ["fred.bloggs@mygolftravel.com"
+              "jane.doe@mygolftravel.com"
+              "john.smith@mygolftravel.com"
+              "mary.major@mygolftravel.com"]))
 
 ;; Given a venue return a random course
 (def choose-course (venue)
-     (ternary (= venue "The Belfry")
-              (sample ["Brabazon" "PGA National" "Derby"])
-              (sample ["Roman Road" "Montgomerie" "Twenty Ten"])))
+     (ternary (= venue "the-belfry")
+              (sample ["brabazon" "pga-national" "derby"])
+              (sample ["roman-road" "montgomerie" "twenty-ten"])))
 
 ;; Returns a random number between 1 and 4
 (def choose-pax ()
@@ -43,15 +55,26 @@
 ;; venue, course, pax and salesperson
 (def create-new-sale ()
      (var venue (choose-venue))
-     { salesperson: (choose-salesperson)
-       venue: venue
-       course: (choose-course venue)
-       pax: (choose-pax)})
+     { event_type: "sale"
+       payload: {
+         salesperson: (choose-salesperson)
+         venue: venue
+         course: (choose-course venue)
+         pax: (choose-pax)}})
+
+;; Returns true if random is > NOISE
+(def signal-to-noise ()
+     (> NOISE (Math.random)))
 
 ;; sends a new message every n seconds
 (def create-data-loop ()
      (set-timeout (#>
-                   (send-rsmq-message (create-new-sale))
+                   (send-rsmq-message
+                     (ternary (signal-to-noise)
+                              (create-new-sale)
+                              { event_type: "other stuff"
+                                payload: { random: "kittens" }}))
                    (create-data-loop)) TIME_DELAY))
 
+(create-queue)
 (create-data-loop)
