@@ -56,6 +56,8 @@
 (def create-new-sale ()
      (var venue (choose-venue))
      { event_type: "sale"
+       timestamp: (.toISOString (new Date))
+       system: "Online tee-sheet"
        payload: {
          salesperson: (choose-salesperson)
          venue: venue

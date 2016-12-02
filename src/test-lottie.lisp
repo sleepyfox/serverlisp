@@ -58,6 +58,9 @@
    (#> (it "should be able to extract a name from an email"
            (#> (assert.equal 'sleepyfox
                              (Lottie._extract-name "sleepyfox@gmail.com"))))
+       (it "should not blow up if email is undefined"
+           (#> (assert.equal 'anonymous
+                             (Lottie._extract-name undefined))))
        (it "should say anonymous if email blank"
            (#> (assert.equal 'anonymous
                              (Lottie._extract-name ""))))

@@ -36,6 +36,7 @@
                                        (ternary (= data.status STATHAT_SUCCESS)
                                                 (context.failure body)
                                                 (context.success body)))))))
+  (console.log "Sending stat" buffer)
   (pipe (request options cb)
         (.end buffer 'utf8)))
 
@@ -51,9 +52,11 @@
           {}))
 
 (def extract-name-from-email (email)
-     (ternary (< (.indexOf email "@") 0)
-              (or email 'anonymous)
-              (.substr email 0 (.indexOf email "@"))))
+     (if email
+         (ternary (< (.indexOf email "@") 0)
+                  (or email 'anonymous)
+                  (.substr email 0 (.indexOf email "@")))
+         'anonymous))
 
 (def parse-pubsub-message (service)
      (# (context data)
@@ -65,7 +68,10 @@
             (is-sale? message)
             (do
              (console.log "Sale: " (JSON.stringify message.payload))
-             (.success context))
+             ;; Send to Stathat
+             (pipe (create-stat message.payload)
+                   (JSON.stringify)
+                   (send-stats context)))
             ;; else
             (do                        
              (ternary (exists? message.payload)
