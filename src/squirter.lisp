@@ -78,5 +78,6 @@
                                 payload: { random: "kittens" }}))
                    (create-data-loop)) TIME_DELAY))
 
+(console.log "Event every" (/ TIME_DELAY 1000 ) "secs")
 (create-queue)
 (create-data-loop)
